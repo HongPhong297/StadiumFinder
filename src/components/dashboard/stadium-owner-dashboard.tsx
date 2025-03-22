@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 type Stadium = {
   id: string;
@@ -18,13 +19,50 @@ type Stadium = {
   };
 };
 
+type Booking = {
+  id: string;
+  startTime: Date;
+  endTime: Date;
+  totalPrice: string;
+  status: string;
+  specialRequests: string | null;
+  createdAt: Date;
+  user: {
+    name: string | null;
+    email: string;
+  };
+  stadium: {
+    id: string;
+    name: string;
+    address: string;
+    images: { url: string }[];
+  };
+};
+
 interface StadiumOwnerDashboardProps {
   user: any;
   stadiums: Stadium[];
+  bookings: Booking[];
 }
 
-export default function StadiumOwnerDashboard({ user, stadiums }: StadiumOwnerDashboardProps) {
+export default function StadiumOwnerDashboard({ user, stadiums, bookings }: StadiumOwnerDashboardProps) {
   const [activeTab, setActiveTab] = useState<"stadiums" | "bookings" | "analytics" | "profile">("stadiums");
+
+  // Function to get appropriate status badge color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "CONFIRMED":
+        return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800 hover:bg-red-200";
+      case "COMPLETED":
+        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -159,11 +197,117 @@ export default function StadiumOwnerDashboard({ user, stadiums }: StadiumOwnerDa
                 <h2 className="text-xl font-semibold text-black mb-6">
                   Booking Requests
                 </h2>
-                <div className="bg-gray-50 p-6 rounded-lg text-center">
-                  <p className="text-black">
-                    You don't have any booking requests yet.
-                  </p>
-                </div>
+                
+                {bookings.length === 0 ? (
+                  <div className="bg-gray-50 p-6 rounded-lg text-center">
+                    <p className="text-black">
+                      You don't have any booking requests yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Stadium
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              User
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Date & Time
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Price
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Status
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {bookings.map((booking) => (
+                            <tr key={booking.id}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-10 w-10">
+                                    {booking.stadium.images && booking.stadium.images.length > 0 ? (
+                                      <img
+                                        className="h-10 w-10 rounded-full object-cover"
+                                        src={booking.stadium.images[0].url}
+                                        alt={booking.stadium.name}
+                                      />
+                                    ) : (
+                                      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                                        No img
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {booking.stadium.name}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">{booking.user.name}</div>
+                                <div className="text-sm text-gray-500">{booking.user.email}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">
+                                  {format(new Date(booking.startTime), "MMM dd, yyyy")}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {format(new Date(booking.startTime), "h:mm a")} - {format(new Date(booking.endTime), "h:mm a")}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">${parseFloat(booking.totalPrice.toString()).toFixed(2)}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <Badge className={getStatusColor(booking.status)}>
+                                  {booking.status}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {booking.status === "PENDING" && (
+                                  <div className="flex space-x-2">
+                                    <button 
+                                      className="text-green-600 hover:text-green-900"
+                                      onClick={() => alert("Confirm booking functionality not implemented")}
+                                    >
+                                      Confirm
+                                    </button>
+                                    <button 
+                                      className="text-red-600 hover:text-red-900"
+                                      onClick={() => alert("Decline booking functionality not implemented")}
+                                    >
+                                      Decline
+                                    </button>
+                                  </div>
+                                )}
+                                {booking.specialRequests && (
+                                  <button 
+                                    className="text-blue-600 hover:text-blue-900 mt-1 block"
+                                    onClick={() => alert(`Special requests: ${booking.specialRequests}`)}
+                                  >
+                                    View requests
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

@@ -19,6 +19,26 @@ interface DashboardStadium {
   };
 }
 
+interface BookingWithDetails {
+  id: string;
+  startTime: Date;
+  endTime: Date;
+  totalPrice: string;
+  status: string;
+  specialRequests: string | null;
+  createdAt: Date;
+  user: {
+    name: string | null;
+    email: string;
+  };
+  stadium: {
+    id: string;
+    name: string;
+    address: string;
+    images: { url: string }[];
+  };
+}
+
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
 
@@ -27,6 +47,7 @@ export default async function Dashboard() {
   }
 
   let ownedStadiums: DashboardStadium[] = [];
+  let stadiumBookings: BookingWithDetails[] = [];
 
   if (session.user.role === "STADIUM_OWNER") {
     // Fetch stadiums owned by this user
@@ -59,12 +80,61 @@ export default async function Dashboard() {
       images: stadium.images,
       _count: stadium._count
     }));
+    
+    // Fetch bookings for all stadiums owned by this user
+    if (ownedStadiums.length > 0) {
+      const bookingsData = await prisma.booking.findMany({
+        where: {
+          stadiumId: {
+            in: ownedStadiums.map(stadium => stadium.id)
+          },
+          // Only show pending, confirmed, or completed bookings
+          status: {
+            in: ["PENDING", "CONFIRMED", "COMPLETED"]
+          }
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true
+            }
+          },
+          stadium: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+              images: {
+                select: {
+                  url: true
+                },
+                take: 1
+              }
+            }
+          }
+        },
+        orderBy: {
+          startTime: 'asc'
+        }
+      });
+      
+      // Convert Decimal totalPrice to string for serialization
+      stadiumBookings = bookingsData.map(booking => ({
+        ...booking,
+        totalPrice: booking.totalPrice.toString()
+      }));
+    }
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {session.user.role === "STADIUM_OWNER" ? (
-        <StadiumOwnerDashboard user={session.user} stadiums={ownedStadiums} />
+        <StadiumOwnerDashboard 
+          user={session.user} 
+          stadiums={ownedStadiums} 
+          bookings={stadiumBookings}
+        />
       ) : (
         <UserDashboard user={session.user} />
       )}
