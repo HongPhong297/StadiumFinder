@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { format } from "date-fns";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 interface AvailabilitySlot {
-  id: string;
-  stadiumId: string;
+  id?: string;
   dayOfWeek: number;
   startTime: string;
   endTime: string;
   isRecurring: boolean;
-  specificDate: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  specificDate: string | null;
 }
 
 interface TimeSlot {
@@ -66,14 +65,14 @@ export async function GET(
     
     // Get recurring availability for this day of week
     const recurringAvailability = stadium.availability.filter(
-      (slot: AvailabilitySlot) => slot.isRecurring && slot.dayOfWeek === dayOfWeek
+      (slot: any) => slot.isRecurring && slot.dayOfWeek === dayOfWeek
     );
     
     console.log(`Found ${recurringAvailability.length} recurring slots for day ${dayOfWeek}`);
     
     // Get specific availability for this date
     const specificAvailability = stadium.availability.filter(
-      (slot: AvailabilitySlot) => {
+      (slot: any) => {
         if (!slot.isRecurring && slot.specificDate) {
           const slotDate = new Date(slot.specificDate);
           return slotDate.toDateString() === selectedDate.toDateString();
@@ -86,7 +85,7 @@ export async function GET(
     
     // Combine available time slots
     const availableSlots = [...recurringAvailability, ...specificAvailability].map(
-      (slot: AvailabilitySlot) => ({
+      (slot: any) => ({
         startTime: slot.startTime,
         endTime: slot.endTime,
       })
@@ -146,6 +145,102 @@ export async function GET(
     });
   } catch (error) {
     console.error("Stadium availability error:", error);
+    return NextResponse.json(
+      { message: "Internal server error", error: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    
+    const stadiumId = params.id;
+    
+    // Check if stadium exists and user owns it
+    const stadium = await prisma.stadium.findUnique({
+      where: { id: stadiumId },
+      select: { 
+        id: true,
+        ownerId: true
+      },
+    });
+
+    if (!stadium) {
+      return NextResponse.json(
+        { message: "Stadium not found" },
+        { status: 404 }
+      );
+    }
+    
+    // Check if the user is the owner or an admin
+    if (stadium.ownerId !== session.user.id && session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "You don't have permission to update this stadium's availability" },
+        { status: 403 }
+      );
+    }
+    
+    const { recurringSlots, specificSlots } = await request.json();
+    
+    // Validate the input
+    if (!Array.isArray(recurringSlots) || !Array.isArray(specificSlots)) {
+      return NextResponse.json(
+        { message: "Invalid input format" },
+        { status: 400 }
+      );
+    }
+    
+    // Delete existing availability
+    await prisma.availability.deleteMany({
+      where: {
+        stadiumId,
+      },
+    });
+    
+    // Prepare slots for database
+    const allSlots = [
+      ...recurringSlots.map(slot => ({
+        stadiumId,
+        dayOfWeek: slot.dayOfWeek,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        isRecurring: true,
+        specificDate: null,
+      })),
+      ...specificSlots.map(slot => ({
+        stadiumId,
+        dayOfWeek: slot.dayOfWeek,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        isRecurring: false,
+        specificDate: slot.specificDate ? new Date(slot.specificDate) : null,
+      })),
+    ];
+    
+    // Create new availability slots
+    await prisma.availability.createMany({
+      data: allSlots,
+    });
+    
+    return NextResponse.json({
+      message: "Availability updated successfully",
+      recurringCount: recurringSlots.length,
+      specificCount: specificSlots.length,
+    });
+  } catch (error) {
+    console.error("Update availability error:", error);
     return NextResponse.json(
       { message: "Internal server error", error: String(error) },
       { status: 500 }

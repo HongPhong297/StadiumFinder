@@ -173,11 +173,11 @@ export default function BookingForm({ stadiumId, pricePerHour }: BookingFormProp
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold mb-4">Book This Stadium</h3>
+      <h3 className="text-xl font-semibold mb-4 text-black">Book This Stadium</h3>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-800 mb-1">
             Date
           </label>
           <input 
@@ -187,25 +187,25 @@ export default function BookingForm({ stadiumId, pricePerHour }: BookingFormProp
               const date = e.target.value ? new Date(e.target.value) : null;
               setSelectedDate(date);
             }}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" 
+            className="mt-1 block w-full border-2 border-gray-300 rounded-md shadow-sm p-2 text-black" 
             min={format(new Date(), "yyyy-MM-dd")}
           />
         </div>
         
         {selectedDate && !isLoadingTimeSlots && availableTimeSlots.length === 0 && (
-          <div className="text-amber-600 text-sm p-2 bg-amber-50 rounded mb-4">
+          <div className="text-amber-700 text-sm p-2 bg-amber-50 rounded mb-4 border border-amber-200">
             No available time slots for the selected date. Please try another date.
           </div>
         )}
         
         {isLoadingTimeSlots ? (
           <div className="flex items-center justify-center h-12">
-            <span className="text-sm text-gray-500">Loading available times...</span>
+            <span className="text-sm text-gray-700">Loading available times...</span>
           </div>
         ) : (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Start Time
               </label>
               <select
@@ -215,81 +215,82 @@ export default function BookingForm({ stadiumId, pricePerHour }: BookingFormProp
                   setSelectedEndTime(""); // Reset end time when start time changes
                 }}
                 disabled={!selectedDate || startTimeOptions.length === 0}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                className="mt-1 block w-full border-2 border-gray-300 rounded-md shadow-sm p-2 text-black"
               >
-                <option value="">Select start time</option>
+                <option value="" className="text-black">Select start time</option>
                 {startTimeOptions.map((time) => (
-                  <option key={time} value={time}>
+                  <option key={time} value={time} className="text-black">
                     {time}
                   </option>
                 ))}
               </select>
               {startTimeOptions.length === 0 && selectedDate && !isLoadingTimeSlots && (
-                <p className="text-sm text-red-500 mt-1">No available start times for the selected date</p>
+                <p className="text-sm text-red-600 mt-1 font-medium">No available start times for the selected date</p>
               )}
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 End Time
               </label>
               <select
                 value={selectedEndTime}
                 onChange={(e) => setSelectedEndTime(e.target.value)}
                 disabled={!selectedStartTime || endTimeOptions.length === 0}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                className="mt-1 block w-full border-2 border-gray-300 rounded-md shadow-sm p-2 text-black"
               >
-                <option value="">Select end time</option>
+                <option value="" className="text-black">Select end time</option>
                 {endTimeOptions.map((time) => (
-                  <option key={time} value={time}>
+                  <option key={time} value={time} className="text-black">
                     {time}
                   </option>
                 ))}
               </select>
               {selectedStartTime && endTimeOptions.length === 0 && !isLoadingTimeSlots && (
-                <p className="text-sm text-red-500 mt-1">No available end times for the selected start time</p>
+                <p className="text-sm text-red-600 mt-1 font-medium">No available end times for the selected start time</p>
               )}
             </div>
           </>
         )}
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-800 mb-1">
             Special Requests (Optional)
           </label>
           <textarea
             value={specialRequests}
             onChange={(e) => setSpecialRequests(e.target.value)}
+            className="mt-1 block w-full border-2 border-gray-300 rounded-md shadow-sm p-2 text-black"
             rows={3}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 resize-none"
-            placeholder="Any special requests or requirements?"
+            placeholder="Any special requests or requirements"
           />
         </div>
         
         {totalPrice > 0 && (
-          <div className="flex justify-between items-center py-3 border-t border-b">
-            <span className="font-medium">Total Price:</span>
-            <span className="text-lg font-bold">${totalPrice.toFixed(2)}</span>
+          <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
+            <p className="text-blue-800 font-semibold">
+              Total: ${totalPrice.toFixed(2)}
+            </p>
           </div>
         )}
         
         {error && (
-          <div className="text-red-500 text-sm p-2 bg-red-50 rounded">
-            {error}
+          <div className="bg-red-50 p-3 rounded-md border border-red-200">
+            <p className="text-red-700 text-sm">{error}</p>
           </div>
         )}
         
-        <button 
-          type="submit" 
-          className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
-          disabled={isLoading || !session}
+        <button
+          type="submit"
+          disabled={!session || isLoading || !selectedDate || !selectedStartTime || !selectedEndTime}
+          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Processing..." : !session ? "Sign in to Book" : "Confirm Booking"}
+          {isLoading ? "Processing..." : "Confirm Booking"}
         </button>
         
         {!session && (
-          <p className="text-xs text-center text-gray-500">
-            You need to be signed in to make a booking
+          <p className="text-sm text-center text-gray-800 mt-2">
+            Please <a href="/login" className="text-blue-700 font-semibold hover:underline">sign in</a> to book this stadium
           </p>
         )}
       </form>

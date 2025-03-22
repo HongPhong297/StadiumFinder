@@ -7,6 +7,7 @@ import StadiumReviews from "@/components/stadiums/stadium-reviews";
 import StadiumGallery from "@/components/stadiums/stadium-gallery";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { MapPin } from "lucide-react";
 
 interface StadiumPageProps {
   params: {
@@ -71,17 +72,27 @@ export default async function StadiumPage({ params }: StadiumPageProps) {
     : 0;
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-12">
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {stadium.name}
-              </h1>
-              <p className="text-gray-600 mb-2">
-                {stadium.address}, {stadium.city}, {stadium.state || stadium.country}
-              </p>
+    <div className="container mx-auto px-4 py-8">
+      <div className="bg-gray-800 text-white rounded-lg p-4 mb-6">
+        <div className="text-sm breadcrumbs">
+          <ul>
+            <li><Link href="/" className="text-blue-400 hover:text-blue-300">Home</Link></li>
+            <li><Link href="/stadiums" className="text-blue-400 hover:text-blue-300">Stadiums</Link></li>
+            <li className="text-gray-300">{stadium.name}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 space-y-6">
+          {/* Stadium Info Card */}
+          <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+            <div className="p-6">
+              <h1 className="text-2xl font-bold text-white mb-2">{stadium.name}</h1>
+              <div className="flex items-center gap-2 mb-4">
+                <MapPin className="h-5 w-5 text-gray-300" />
+                <p className="text-gray-300">{stadium.address}</p>
+              </div>
               <div className="flex items-center">
                 <div className="flex items-center">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -108,128 +119,34 @@ export default async function StadiumPage({ params }: StadiumPageProps) {
                 </div>
               </div>
             </div>
-            <div className="mt-4 md:mt-0">
-              <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-                <p className="text-2xl font-bold text-blue-600">
-                  ${stadium.pricePerHour.toFixed(2)}
-                  <span className="text-sm font-normal">/hour</span>
-                </p>
-              </div>
+          </div>
+
+          {/* Reviews Section */}
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-bold text-white mb-4">Reviews</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Reviews ({reviewCount})
+              </h2>
+              {session?.user && (
+                <Link
+                  href={`/stadiums/${stadium.id}/review`}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  Write a Review
+                </Link>
+              )}
             </div>
+            <StadiumReviews reviews={stadium.reviews} />
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
-              <StadiumGallery images={stadium.images} name={stadium.name} />
-            </div>
-
-            <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Description
-                </h2>
-                <p className="text-gray-700 whitespace-pre-line">
-                  {stadium.description}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Facilities
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {stadium.facilities.map((facility: string) => (
-                    <div key={facility} className="flex items-center">
-                      <svg
-                        className="w-5 h-5 text-green-500 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      <span className="text-gray-700">{facility}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Sports
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {stadium.sportTypes.map((sport: string) => (
-                    <span
-                      key={sport}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
-                    >
-                      {sport}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {stadium.rules && (
-              <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
-                <div className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                    Rules
-                  </h2>
-                  <p className="text-gray-700 whitespace-pre-line">
-                    {stadium.rules}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="bg-white shadow rounded-lg overflow-hidden">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Reviews ({reviewCount})
-                  </h2>
-                  {session?.user && (
-                    <Link
-                      href={`/stadiums/${stadium.id}/review`}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-                    >
-                      Write a Review
-                    </Link>
-                  )}
-                </div>
-                <StadiumReviews reviews={stadium.reviews} />
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-1">
-            <div className="bg-white shadow rounded-lg overflow-hidden sticky top-6">
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Book this Stadium
-                </h2>
-                <BookingForm
-                  stadiumId={stadium.id}
-                  pricePerHour={stadium.pricePerHour}
-                />
-              </div>
-            </div>
-          </div>
+        {/* Booking Form Column */}
+        <div className="border border-gray-400 rounded-lg shadow-lg overflow-hidden">
+          <BookingForm 
+            stadiumId={stadium.id} 
+            pricePerHour={stadium.pricePerHour} 
+          />
         </div>
       </div>
     </div>
