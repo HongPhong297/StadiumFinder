@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  bookings      Booking[]
+  reviews       Review[]
+  stadiums      Stadium[] // For stadium owners
+  
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  STADIUM_OWNER
+  ADMIN
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Stadium {
+  id               String    @id @default(cuid())
+  name             String
+  description      String    @db.Text
+  address          String
+  city             String
+  state            String?
+  postalCode       String
+  country          String
+  latitude         Float?
+  longitude        Float?
+  pricePerHour     Decimal   @db.Decimal(10, 2)
+  sportTypes       String[]
+  facilities       String[]
+  rules            String?   @db.Text
+  capacity         Int?
+  contactPhone     String?
+  contactEmail     String?
+  images           StadiumImage[]
+  availability     Availability[]
+  ownerId          String
+  isVerified       Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  owner            User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  bookings         Booking[]
+  reviews          Review[]
+
+  @@map("stadiums")
+}
+
+model StadiumImage {
+  id        String   @id @default(cuid())
+  url       String
+  stadiumId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stadium   Stadium  @relation(fields: [stadiumId], references: [id], onDelete: Cascade)
+  
+  @@map("stadium_images")
+}
+
+model Availability {
+  id          String   @id @default(cuid())
+  stadiumId   String
+  dayOfWeek   Int      // 0-6: Sunday to Saturday
+  startTime   String   // Format: HH:MM in 24-hour
+  endTime     String   // Format: HH:MM in 24-hour
+  isRecurring Boolean  @default(true)
+  specificDate DateTime? // For non-recurring availability
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stadium     Stadium  @relation(fields: [stadiumId], references: [id], onDelete: Cascade)
+  
+  @@map("availabilities")
+}
+
+model Booking {
+  id          String       @id @default(cuid())
+  stadiumId   String
+  userId      String
+  startTime   DateTime
+  endTime     DateTime
+  totalPrice  Decimal      @db.Decimal(10, 2)
+  status      BookingStatus @default(PENDING)
+  paymentId   String?
+  paymentStatus PaymentStatus @default(PENDING)
+  specialRequests String?   @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  stadium     Stadium      @relation(fields: [stadiumId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  rating    Int      // 1-5
+  stadiumId String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stadium   Stadium  @relation(fields: [stadiumId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("reviews")
+} 
