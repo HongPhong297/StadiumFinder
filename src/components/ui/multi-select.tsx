@@ -1,102 +1,125 @@
-import * as React from "react";
-import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
+"use client";
 
-interface MultiSelectProps {
-  options: { label: string; value: string }[];
-  selected: string[];
-  onChange: (selected: string[]) => void;
-  placeholder?: string;
-  className?: string;
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Check, X, ChevronsUpDown } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+
+export interface MultiSelectOption {
+  label: string;
+  value: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
-export function MultiSelect({
+interface MultiSelectProps {
+  options: MultiSelectOption[];
+  selected: string[];
+  onChange: React.Dispatch<React.SetStateAction<string[]>>;
+  className?: string;
+  placeholder?: string;
+}
+
+function MultiSelect({
   options,
   selected,
   onChange,
-  placeholder = "Select options",
   className,
+  placeholder = "Select options",
 }: MultiSelectProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [open, setOpen] = React.useState(false);
 
-  const handleSelect = (value: string) => {
-    const newSelected = selected.includes(value)
-      ? selected.filter((item) => item !== value)
-      : [...selected, value];
-    onChange(newSelected);
+  const handleUnselect = (item: string) => {
+    onChange(selected.filter((i) => i !== item));
   };
-
-  const handleRemove = (e: React.MouseEvent, value: string) => {
-    e.stopPropagation();
-    onChange(selected.filter((item) => item !== value));
-  };
-
-  React.useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }, []);
 
   return (
-    <div className="relative" ref={containerRef}>
-      <div
-        className={cn(
-          "flex min-h-9 w-full flex-wrap items-center rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm ring-offset-background focus-within:ring-1 focus-within:ring-ring",
-          className
-        )}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {selected.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {selected.map((value) => (
-              <div
-                key={value}
-                className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-xs"
-              >
-                <span>
-                  {options.find((option) => option.value === value)?.label || value}
-                </span>
-                <button
-                  type="button"
-                  className="text-secondary-foreground/50 hover:text-secondary-foreground"
-                  onClick={(e) => handleRemove(e, value)}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={cn("w-full justify-between bg-gray-700 border-gray-600 text-white hover:bg-gray-600 hover:text-white", className)}
+          onClick={() => setOpen(!open)}
+        >
+          <div className="flex gap-1 flex-wrap">
+            {selected.length > 0 ? (
+              selected.map((item) => {
+                const option = options.find((opt) => opt.value === item);
+                return (
+                  <Badge
+                    variant="secondary"
+                    key={item}
+                    className="mr-1 mb-1 bg-blue-600 text-white hover:bg-blue-500"
+                    onClick={() => handleUnselect(item)}
+                  >
+                    {option?.label || item}
+                    <X className="ml-1 h-4 w-4 cursor-pointer" />
+                  </Badge>
+                );
+              })
+            ) : (
+              <span className="text-gray-400">{placeholder}</span>
+            )}
           </div>
-        ) : (
-          <span className="text-muted-foreground">{placeholder}</span>
-        )}
-      </div>
-      {isOpen && (
-        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
-          {options.map((option) => {
-            const isSelected = selected.includes(option.value);
-            return (
-              <div
-                key={option.value}
-                className={cn(
-                  "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                  isSelected && "bg-accent/50"
-                )}
-                onClick={() => handleSelect(option.value)}
-              >
-                {option.label}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full p-0 bg-gray-800 border-gray-600">
+        <Command className="bg-gray-800 text-white">
+          <CommandInput placeholder="Search ..." className="placeholder:text-gray-400 text-white border-gray-600 focus:border-blue-500" />
+          <CommandList>
+            <CommandEmpty>No item found.</CommandEmpty>
+            <CommandGroup heading="Available options">
+              {options.map((option) => {
+                const isSelected = selected.includes(option.value);
+                return (
+                  <CommandItem
+                    key={option.value}
+                    onSelect={() => {
+                      if (isSelected) {
+                        handleUnselect(option.value);
+                      } else {
+                        onChange([...selected, option.value]);
+                      }
+                      setOpen(true);
+                    }}
+                    className="text-white hover:!bg-gray-700 aria-selected:!bg-blue-700"
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        isSelected ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div className="flex items-center gap-2">
+                      {option.icon && <option.icon className="h-4 w-4" />}
+                      <span>{option.label}</span>
+                    </div>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
-} 
+}
+
+export { MultiSelect }; 
