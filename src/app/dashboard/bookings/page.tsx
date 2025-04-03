@@ -59,14 +59,14 @@ export default async function BookingsPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">My Bookings</h1>
-        <p className="text-gray-700 mt-2">View and manage your stadium bookings</p>
+        <h1 className="text-3xl font-bold text-gray-900">My Bookings</h1>
+        <p className="text-gray-600 mt-2">View and manage your stadium bookings</p>
       </div>
       
       {bookings.length === 0 ? (
-        <div className="text-center py-12">
-          <h3 className="text-xl font-medium text-gray-800 mb-4">No bookings found</h3>
-          <p className="text-gray-700 mb-6">You haven't made any bookings yet.</p>
+        <div className="text-center py-12 bg-gray-800 rounded-lg">
+          <h3 className="text-xl font-medium text-white mb-4">No bookings found</h3>
+          <p className="text-gray-300 mb-6">You haven't made any bookings yet.</p>
           <a href="/stadiums" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
             Find Stadiums
           </a>
@@ -74,8 +74,8 @@ export default async function BookingsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {bookings.map((booking) => (
-            <Card key={booking.id} className="overflow-hidden">
-              <div className="relative h-48 w-full bg-gray-200">
+            <Card key={booking.id} className="overflow-hidden bg-gray-800 border-gray-700">
+              <div className="relative h-48 w-full bg-gray-700">
                 {booking.stadium.images[0] ? (
                   <img 
                     src={booking.stadium.images[0].url} 
@@ -83,7 +83,7 @@ export default async function BookingsPage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full w-full bg-gray-100">
+                  <div className="flex items-center justify-center h-full w-full bg-gray-700">
                     <span className="text-gray-400">No image available</span>
                   </div>
                 )}
@@ -95,8 +95,8 @@ export default async function BookingsPage() {
               </div>
               
               <CardHeader>
-                <CardTitle>{booking.stadium.name}</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white">{booking.stadium.name}</CardTitle>
+                <CardDescription className="text-gray-300">
                   {booking.stadium.address}, {booking.stadium.city}
                 </CardDescription>
               </CardHeader>
@@ -104,20 +104,20 @@ export default async function BookingsPage() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-700">Date</span>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm text-gray-300">Date</span>
+                    <span className="text-sm font-medium text-white">
                       {format(new Date(booking.startTime), "PPP")}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-700">Time</span>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm text-gray-300">Time</span>
+                    <span className="text-sm font-medium text-white">
                       {format(new Date(booking.startTime), "p")} - {format(new Date(booking.endTime), "p")}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-700">Total Price</span>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm text-gray-300">Total Price</span>
+                    <span className="text-sm font-medium text-white">
                       ${parseFloat(booking.totalPrice.toString()).toFixed(2)}
                     </span>
                   </div>
@@ -126,7 +126,7 @@ export default async function BookingsPage() {
                     <div className="flex justify-end mt-4">
                       <a 
                         href={`/dashboard/bookings/${booking.id}/cancel`}
-                        className="text-sm text-red-600 hover:text-red-800 font-medium"
+                        className="text-sm text-red-400 hover:text-red-300 font-medium"
                       >
                         Cancel Booking
                       </a>

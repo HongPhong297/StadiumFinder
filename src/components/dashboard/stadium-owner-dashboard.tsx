@@ -325,68 +325,72 @@ export default function StadiumOwnerDashboard({ user, stadiums, bookings }: Stad
             )}
 
             {activeTab === "profile" && (
-              <div>
-                <h2 className="text-xl font-semibold text-black mb-6">
+              <div className="bg-gray-800 p-6 rounded-lg shadow">
+                <h2 className="text-xl font-semibold text-white mb-6">
                   Profile Settings
                 </h2>
-                <div className="bg-white shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <div className="grid grid-cols-1 gap-6">
-                      <div className="col-span-1">
-                        <label
-                          htmlFor="name"
-                          className="block text-sm font-medium text-black"
-                        >
-                          Business Name
-                        </label>
-                        <input
-                          type="text"
-                          name="name"
-                          id="name"
-                          defaultValue={user.name || ""}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                          placeholder="Your business name"
-                        />
-                      </div>
-                      <div className="col-span-1">
-                        <label
-                          htmlFor="email"
-                          className="block text-sm font-medium text-black"
-                        >
-                          Email
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          id="email"
-                          defaultValue={user.email}
-                          disabled
-                          className="mt-1 block w-full border border-gray-300 bg-gray-50 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        />
-                      </div>
-                      <div className="col-span-1">
-                        <label
-                          htmlFor="contactPhone"
-                          className="block text-sm font-medium text-black"
-                        >
-                          Contact Phone
-                        </label>
-                        <input
-                          type="tel"
-                          name="contactPhone"
-                          id="contactPhone"
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                          placeholder="Your contact phone number"
-                        />
-                      </div>
-                      <div className="col-span-1">
-                        <button
-                          type="button"
-                          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                          Save Changes
-                        </button>
-                      </div>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                    <div className="sm:col-span-6">
+                      <label
+                        htmlFor="name"
+                        className="block text-sm font-medium text-gray-300"
+                      >
+                        Business Name
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        defaultValue={user.name || ""}
+                        className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm p-2 bg-gray-700 text-white placeholder:text-gray-400 focus:ring-blue-600 focus:border-blue-600 ring-offset-gray-800"
+                        placeholder="Your business name"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-6">
+                      <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-gray-300"
+                      >
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        defaultValue={user.email || ""}
+                        disabled
+                        className="mt-1 block w-full border border-gray-700 rounded-md shadow-sm p-2 bg-gray-600 text-gray-400 cursor-not-allowed"
+                      />
+                      <p className="mt-1 text-sm text-gray-400">Your email address cannot be changed.</p>
+                    </div>
+
+                    <div className="sm:col-span-6">
+                      <label
+                        htmlFor="contactPhone"
+                        className="block text-sm font-medium text-gray-300"
+                      >
+                        Contact Phone
+                      </label>
+                      <input
+                        type="text"
+                        name="contactPhone"
+                        id="contactPhone"
+                        defaultValue={user.contactPhone || ""}
+                        className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm p-2 bg-gray-700 text-white placeholder:text-gray-400 focus:ring-blue-600 focus:border-blue-600 ring-offset-gray-800"
+                        placeholder="Your contact phone number"
+                      />
+                    </div>
+                  </div>
+                  <div className="pt-5">
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ring-offset-gray-800"
+                      >
+                        Save Changes
+                      </button>
                     </div>
                   </div>
                 </div>

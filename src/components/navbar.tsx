@@ -111,7 +111,7 @@ export default function Navbar() {
                       Dashboard
                     </Link>
                     <Link
-                      href="/profile"
+                      href="/dashboard/profile"
                       className="block px-4 py-2 text-sm text-black hover:bg-gray-100"
                       onClick={closeMenus}
                     >
@@ -244,7 +244,7 @@ export default function Navbar() {
                   Dashboard
                 </Link>
                 <Link
-                  href="/profile"
+                  href="/dashboard/profile"
                   className="block px-4 py-2 text-base font-medium text-black hover:text-black hover:bg-gray-100"
                   onClick={closeMenus}
                 >
