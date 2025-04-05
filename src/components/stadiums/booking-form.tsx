@@ -16,6 +16,13 @@ interface TimeSlot {
   endTime: string;
 }
 
+// Define the expected structure of the availability API response
+interface AvailabilityResponse {
+  date: string;
+  availableSlots: TimeSlot[];
+  bookedSlots: TimeSlot[]; // Even if not used directly, define it for completeness
+}
+
 const formSchema = z.object({
   date: z.date({
     required_error: "A date is required",
@@ -72,33 +79,50 @@ export default function BookingForm({ stadiumId, pricePerHour }: BookingFormProp
     setIsLoadingTimeSlots(true);
     setError("");
     setAvailableTimeSlots([]);
-    
+    setSelectedStartTime("");
+    setSelectedEndTime("");
+
+    const formattedDate = format(selectedDate, "yyyy-MM-dd");
+    console.log(`Fetching slots for date: ${formattedDate}`)
+
     try {
-      const formattedDate = format(selectedDate, "yyyy-MM-dd");
-      console.log(`Fetching time slots for ${formattedDate}`);
-      
-      const response = await fetch(`/api/stadiums/${stadiumId}/availability?date=${formattedDate}`);
+      const response = await fetch(
+        `/api/stadiums/${stadiumId}/availability?date=${formattedDate}`,
+        {
+          // Add cache control to prevent stale data
+          cache: 'no-store', 
+        }
+      );
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch available time slots: ${response.status} ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to load time slots");
       }
       
-      const data = await response.json();
+      const data: AvailabilityResponse = await response.json();
       console.log("Availability data:", data);
       
-      if (!data.availableSlots || data.availableSlots.length === 0) {
+      // --- Filter available slots based on booked slots --- 
+      const bookedStartTimes = new Set(data.bookedSlots.map(slot => slot.startTime));
+      const trulyAvailableSlots = data.availableSlots.filter(
+          slot => !bookedStartTimes.has(slot.startTime)
+      );
+      // ----------------------------------------------------
+      
+      if (trulyAvailableSlots.length === 0) { // Check the filtered list
         setError("No available time slots for the selected date");
-        return;
+        // Keep availableTimeSlots empty
+        return; 
       }
       
       // Ensure we have the proper format for time slots
-      const formattedSlots = data.availableSlots.map((slot: { startTime: string | Date; endTime: string | Date }) => ({
+      const formattedSlots = trulyAvailableSlots.map((slot: { startTime: string | Date; endTime: string | Date }) => ({ // Use filtered list
         startTime: typeof slot.startTime === 'string' ? slot.startTime : format(new Date(slot.startTime), 'HH:mm'),
         endTime: typeof slot.endTime === 'string' ? slot.endTime : format(new Date(slot.endTime), 'HH:mm')
       }));
       
-      console.log("Formatted time slots:", formattedSlots);
-      setAvailableTimeSlots(formattedSlots);
+      console.log("Filtered & Formatted time slots:", formattedSlots);
+      setAvailableTimeSlots(formattedSlots); // Set state with filtered list
     } catch (error) {
       console.error("Error fetching time slots:", error);
       setError(`Failed to load available time slots: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -157,17 +181,22 @@ export default function BookingForm({ stadiumId, pricePerHour }: BookingFormProp
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create booking");
+        const errorData = await response.json().catch(() => ({ message: "Failed to parse error response" }));
+        const errorMessage = errorData.message || "Failed to create booking";
+        setError(errorMessage);
+        setIsLoading(false);
+        return;
       }
       
-      // Success! Redirect to bookings page
-      router.push("/dashboard/bookings");
-    } catch (error: any) {
-      console.error("Booking error:", error);
-      setError(error.message || "Failed to create booking");
+      router.push("/dashboard/bookings?status=created");
+
+    } catch (networkError: any) {
+      console.error("Booking Submission Error:", networkError);
+      setError(networkError.message || "An unexpected network error occurred");
     } finally {
-      setIsLoading(false);
+      if (isLoading) {
+         setIsLoading(false); 
+      } 
     }
   };
 

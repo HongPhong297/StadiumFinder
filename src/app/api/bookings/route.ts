@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { Prisma } from "@prisma/client";
 
 export async function POST(request: Request) {
   try {
@@ -39,11 +40,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check for overlapping bookings
+    // Check for overlapping bookings (both PENDING and CONFIRMED)
     const overlappingBookings = await prisma.booking.findMany({
       where: {
         stadiumId,
-        status: "CONFIRMED",
+        status: { in: ["CONFIRMED", "PENDING"] },
         OR: [
           {
             startTime: {
@@ -71,9 +72,9 @@ export async function POST(request: Request) {
         userId: session.user.id,
         startTime: startDateTime,
         endTime: endDateTime,
-        totalPrice,
+        totalPrice: new Prisma.Decimal(totalPrice),
+        status: "PENDING",
         specialRequests: specialRequests || "",
-        status: "CONFIRMED",
         paymentStatus: "PENDING",
       },
       include: {

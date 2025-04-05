@@ -4,6 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { differenceInHours } from 'date-fns';
+import { CancelBookingCard } from '@/components/bookings/cancel-booking-card';
 
 interface CancelBookingPageProps {
   params: {
@@ -18,17 +20,15 @@ export default async function CancelBookingPage({ params }: CancelBookingPagePro
     redirect("/signin?callbackUrl=/dashboard/bookings");
   }
   
-  // Fetch the booking with stadium details
+  // Fetch the booking (select fields needed by client component)
   const booking = await prisma.booking.findUnique({
-    where: {
-      id: params.id,
-    },
-    include: {
-      stadium: {
-        select: {
-          name: true,
-        },
-      },
+    where: { id: params.id },
+    select: { 
+      id: true,
+      userId: true,
+      startTime: true, 
+      status: true, 
+      stadium: { select: { name: true } } 
     },
   });
   
@@ -42,74 +42,84 @@ export default async function CancelBookingPage({ params }: CancelBookingPagePro
     redirect("/dashboard/bookings");
   }
   
-  async function cancelBooking(formData: FormData) {
+  // Calculate if cancellation is allowed
+  const now = new Date();
+  const hoursUntilBooking = differenceInHours(booking.startTime, now);
+  const canCancel = hoursUntilBooking >= 8;
+  
+  // Define the server action (signature updated previously)
+  async function cancelBooking(formData: FormData): Promise<void> { 
     "use server";
     
+    // Re-fetch session and booking inside the action for security
     const session = await getServerSession(authOptions);
-    
     if (!session) {
-      return;
+      console.error("Cancellation failed: Authentication required.");
+      return; // Return void
     }
     
-    const booking = await prisma.booking.findUnique({
-      where: {
-        id: params.id,
-      },
+    const bookingToCancel = await prisma.booking.findUnique({
+      where: { id: params.id },
+      select: { userId: true, status: true, startTime: true } // Select only needed fields
     });
     
-    if (!booking) {
-      return;
+    if (!bookingToCancel) {
+      console.error("Cancellation failed: Booking not found.");
+      return; // Return void
     }
     
-    if (booking.userId !== session.user.id) {
-      return;
+    if (bookingToCancel.userId !== session.user.id) {
+      console.error("Cancellation failed: Permission denied.");
+      return; // Return void
     }
     
-    if (booking.status === "CANCELLED" || booking.status === "COMPLETED") {
-      return;
+    if (bookingToCancel.status === "CANCELLED" || bookingToCancel.status === "COMPLETED") {
+       console.error("Cancellation failed: Booking cannot be cancelled.");
+      return; // Return void
+    }
+
+    // Add the cancellation time check
+    const hoursDifference = differenceInHours(bookingToCancel.startTime, new Date());
+    if (hoursDifference < 8) {
+        console.error(`Cancellation attempt failed: Booking starts in ${hoursDifference} hours. Cancellation window is 8 hours.`);
+       return; // Return void
     }
     
     // Update booking status to CANCELLED
-    await prisma.booking.update({
-      where: {
-        id: params.id,
-      },
-      data: {
-        status: "CANCELLED",
-      },
-    });
+    try {
+      await prisma.booking.update({
+        where: {
+          id: params.id,
+          userId: session.user.id,
+        },
+        data: {
+          status: "CANCELLED",
+        },
+      });
+    } catch (error) {
+        console.error("Failed to update booking status:", error);
+        return; // Return void on DB error
+    }
     
-    redirect("/dashboard/bookings");
+    // No error, redirect
+    redirect("/dashboard/bookings?status=cancelled");
   }
   
+  // Prepare a simplified booking object for the client component prop
+  const bookingForClient = {
+      id: booking.id,
+      stadium: { name: booking.stadium.name }
+      // Add other display fields if needed
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-md">
-      <Card>
-        <CardHeader>
-          <CardTitle>Cancel Booking</CardTitle>
-          <CardDescription>
-            You are about to cancel your booking for {booking.stadium.name}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-800 mb-4">
-            Are you sure you want to cancel this booking? This action cannot be undone.
-          </p>
-          <div className="bg-amber-50 border border-amber-200 rounded p-3 text-amber-800 text-sm">
-            Note: Cancellation policies may apply. Check the stadium's rules for details.
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={() => redirect("/dashboard/bookings")}>
-            Go Back
-          </Button>
-          <form action={cancelBooking}>
-            <Button variant="destructive" type="submit">
-              Confirm Cancellation
-            </Button>
-          </form>
-        </CardFooter>
-      </Card>
+      {/* Render the Client Component, passing props */}
+      <CancelBookingCard 
+        booking={bookingForClient} 
+        canCancel={canCancel} 
+        cancelAction={cancelBooking} 
+      />
     </div>
   );
 } 
