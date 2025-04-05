@@ -4,6 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import StadiumOwnerDashboard from "@/components/dashboard/stadium-owner-dashboard";
 import { UserDashboard } from "@/components/dashboard/user-dashboard";
+import { subDays } from 'date-fns';
+import { Prisma } from '@prisma/client';
 
 // Changed interface name to avoid conflicts with other Stadium types
 interface DashboardStadium {
@@ -51,6 +53,18 @@ interface Booking {
   };
 }
 
+// Define interface for the analytics data
+interface AnalyticsData {
+  totalBookingsLast30Days: number;
+  totalRevenueLast30Days: number;
+  statusCounts: {
+    PENDING: number;
+    CONFIRMED: number;
+    CANCELLED: number;
+    COMPLETED: number;
+  };
+}
+
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
 
@@ -61,7 +75,8 @@ export default async function Dashboard() {
   const isStadiumOwner = session.user.role === "STADIUM_OWNER";
   let ownedStadiums: any[] = [];
   let stadiumBookings: any[] = [];
-  let userBookings: Booking[] = []; // Initialize user bookings array
+  let userBookings: Booking[] = [];
+  let analyticsData: AnalyticsData | null = null; // Initialize analytics data
 
   if (isStadiumOwner) {
     // Fetch data for stadium owner
@@ -81,6 +96,52 @@ export default async function Dashboard() {
     }));
 
     const stadiumIds = ownedStadiums.map(s => s.id);
+
+    // --- Fetch data for analytics --- 
+    const thirtyDaysAgo = subDays(new Date(), 30);
+
+    // Fetch bookings needed for analytics calculation
+    const bookingsForAnalytics = await prisma.booking.findMany({
+        where: {
+            stadiumId: { in: stadiumIds },
+            // Fetch relevant statuses and date range
+            OR: [
+                { status: { in: ['CONFIRMED', 'COMPLETED']}, createdAt: { gte: thirtyDaysAgo } }, // For revenue/count last 30 days
+                { status: { in: ['PENDING', 'CANCELLED'] } } // For status counts (all time? or last 30 days? Let's do all time for counts for now)
+            ]
+        },
+        select: {
+            status: true,
+            totalPrice: true,
+            createdAt: true, // Needed to filter by date range client-side if needed, or use where clause
+        }
+    });
+
+    // --- Calculate Analytics --- 
+    let revenueLast30 = new Prisma.Decimal(0);
+    let bookingsLast30 = 0;
+    const statusCounts = { PENDING: 0, CONFIRMED: 0, CANCELLED: 0, COMPLETED: 0 };
+
+    bookingsForAnalytics.forEach(booking => {
+        // Increment status count
+        if (booking.status in statusCounts) {
+            statusCounts[booking.status as keyof typeof statusCounts]++;
+        }
+
+        // Calculate revenue and count for last 30 days (Confirmed/Completed only)
+        if (['CONFIRMED', 'COMPLETED'].includes(booking.status) && booking.createdAt >= thirtyDaysAgo) {
+            bookingsLast30++;
+            revenueLast30 = revenueLast30.add(booking.totalPrice);
+        }
+    });
+
+    analyticsData = {
+        totalBookingsLast30Days: bookingsLast30,
+        totalRevenueLast30Days: parseFloat(revenueLast30.toFixed(2)), // Convert Decimal to number for client
+        statusCounts: statusCounts
+    };
+    // --- End Analytics Calculation --- 
+
     const rawStadiumBookings = await prisma.booking.findMany({ // Renamed temp variable
         where: { stadiumId: { in: stadiumIds } },
         include: { user: true, stadium: { include: { images: { take: 1 }}}}, 
@@ -128,7 +189,8 @@ export default async function Dashboard() {
         <StadiumOwnerDashboard 
           user={session.user} 
           stadiums={ownedStadiums} 
-          bookings={stadiumBookings} // Pass stadium bookings
+          bookings={stadiumBookings} 
+          analyticsData={analyticsData} // Pass analytics data
         />
       ) : (
         <UserDashboard 

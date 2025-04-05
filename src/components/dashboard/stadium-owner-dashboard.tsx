@@ -43,17 +43,35 @@ type Booking = {
   };
 };
 
+// Define interface for the analytics data (must match the server)
+interface AnalyticsData {
+  totalBookingsLast30Days: number;
+  totalRevenueLast30Days: number;
+  statusCounts: {
+    PENDING: number;
+    CONFIRMED: number;
+    CANCELLED: number;
+    COMPLETED: number;
+  };
+}
+
 interface StadiumOwnerDashboardProps {
   user: any;
   stadiums: Stadium[];
   bookings: Booking[];
+  analyticsData: AnalyticsData | null; // Add analyticsData prop
 }
 
 // Define possible status filters including 'ALL'
 const statusFilterOptions = ['ALL', ...Object.values(BookingStatus)];
 type StatusFilter = 'ALL' | BookingStatus;
 
-export default function StadiumOwnerDashboard({ user, stadiums: initialStadiums, bookings: initialBookings }: StadiumOwnerDashboardProps) {
+export default function StadiumOwnerDashboard({ 
+  user, 
+  stadiums: initialStadiums, 
+  bookings: initialBookings, 
+  analyticsData // Destructure the prop
+}: StadiumOwnerDashboardProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"stadiums" | "bookings" | "analytics" | "profile">("stadiums");
   const [bookings, setBookings] = useState(initialBookings);
@@ -402,13 +420,45 @@ export default function StadiumOwnerDashboard({ user, stadiums: initialStadiums,
             {activeTab === "analytics" && (
               <div>
                 <h2 className="text-xl font-semibold text-black mb-6">
-                  Analytics
+                  Analytics Overview
                 </h2>
-                <div className="bg-gray-50 p-6 rounded-lg text-center">
-                  <p className="text-black">
-                    Add stadiums to see booking analytics and insights.
-                  </p>
-                </div>
+                {analyticsData ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Card for Bookings Last 30 Days */}
+                    <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
+                      <h3 className="text-sm font-medium text-gray-500">Bookings (Last 30d)</h3>
+                      <p className="mt-1 text-3xl font-semibold text-gray-900">
+                        {analyticsData.totalBookingsLast30Days}
+                      </p>
+                    </div>
+                    {/* Card for Revenue Last 30 Days */}
+                    <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
+                      <h3 className="text-sm font-medium text-gray-500">Revenue (Last 30d)</h3>
+                      <p className="mt-1 text-3xl font-semibold text-gray-900">
+                        ${analyticsData.totalRevenueLast30Days.toFixed(2)}
+                      </p>
+                    </div>
+                    {/* Card for Status Breakdown */}
+                    <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
+                      <h3 className="text-sm font-medium text-gray-500 mb-2">Booking Statuses</h3>
+                      <div className="space-y-1">
+                        {Object.entries(analyticsData.statusCounts).map(([status, count]) => (
+                           <div key={status} className="flex justify-between text-sm">
+                             <span className="text-gray-600">{status.charAt(0) + status.slice(1).toLowerCase()}:</span>
+                             <span className="font-medium text-gray-900">{count}</span>
+                           </div>
+                        ))}
+                       </div>
+                    </div>
+                  </div>
+                ) : (
+                  // Fallback if analytics data is null (shouldn't happen with current logic but good practice)
+                  <div className="bg-gray-50 p-6 rounded-lg text-center">
+                    <p className="text-black">
+                      Analytics data is currently unavailable.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
