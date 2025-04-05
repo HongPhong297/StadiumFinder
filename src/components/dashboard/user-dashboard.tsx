@@ -3,12 +3,41 @@
 import { useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+
+interface Booking {
+  id: string;
+  startTime: Date;
+  endTime: Date;
+  status: string;
+  totalPrice: string;
+  stadium: {
+    name: string;
+  };
+}
 
 interface UserDashboardProps {
   user: any;
+  bookings: Booking[];
 }
 
-export default function UserDashboard({ user }: UserDashboardProps) {
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "CONFIRMED":
+      return "bg-green-100 text-green-800 hover:bg-green-200";
+    case "PENDING":
+      return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
+    case "CANCELLED":
+      return "bg-red-100 text-red-800 hover:bg-red-200";
+    case "COMPLETED":
+      return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+    default:
+      return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+  }
+};
+
+export function UserDashboard({ user, bookings }: UserDashboardProps) {
   const [activeTab, setActiveTab] = useState<"bookings" | "favorites" | "profile">("bookings");
 
   return (
@@ -82,17 +111,39 @@ export default function UserDashboard({ user }: UserDashboardProps) {
                   </Link>
                 </div>
 
-                <div className="bg-gray-50 p-6 rounded-lg text-center">
-                  <p className="text-black mb-4">
-                    You don't have any bookings yet.
-                  </p>
-                  <Link
-                    href="/stadiums"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    Explore Stadiums
-                  </Link>
-                </div>
+                {bookings.length === 0 ? (
+                  <div className="bg-gray-50 p-6 rounded-lg text-center">
+                    <p className="text-black mb-4">
+                      You don't have any bookings yet.
+                    </p>
+                    <Link
+                      href="/stadiums"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      Explore Stadiums
+                    </Link>
+                  </div>
+                ) : (
+                  <ul className="space-y-4">
+                    {bookings.map((booking) => (
+                      <li key={booking.id} className="bg-white p-4 rounded-lg shadow border border-gray-200 flex justify-between items-center">
+                        <div>
+                          <p className="text-lg font-semibold text-gray-800">{booking.stadium.name}</p>
+                          <p className="text-sm text-gray-600">
+                            {format(new Date(booking.startTime), "EEE, MMM dd, yyyy")}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {format(new Date(booking.startTime), "p")} - {format(new Date(booking.endTime), "p")}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                             Total: ${parseFloat(booking.totalPrice).toFixed(2)}
+                          </p>
+                        </div>
+                        <Badge className={getStatusColor(booking.status)}>{booking.status}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
 

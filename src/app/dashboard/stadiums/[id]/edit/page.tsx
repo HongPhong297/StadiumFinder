@@ -54,8 +54,8 @@ export default async function EditStadiumPage({ params }: PageProps) {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-black">Edit Stadium</h1>
-        <p className="mt-2 text-black">
+        <h1 className="text-3xl font-bold text-gray-900">Edit Stadium</h1>
+        <p className="mt-2 text-gray-600">
           Update your stadium information and amenities.
         </p>
       </div>

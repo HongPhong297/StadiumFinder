@@ -35,6 +35,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/multi-select";
+import { Label } from "@/components/ui/label";
+import { X } from "lucide-react";
 
 const sportTypes = [
   { label: "Football", value: "Football" },
@@ -208,8 +210,8 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
   return (
     <Card className="border-0 shadow-none">
       <CardHeader>
-        <CardTitle>Edit Stadium</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-gray-900">Edit Stadium</CardTitle>
+        <CardDescription className="text-gray-600">
           Update the information for {stadium.name}
         </CardDescription>
       </CardHeader>
@@ -222,9 +224,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Stadium Name</FormLabel>
+                    <FormLabel className="text-gray-700">Stadium Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter stadium name" {...field} />
+                      <Input placeholder="Enter stadium name" {...field} className="bg-white text-black border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -236,9 +238,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="pricePerHour"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price Per Hour</FormLabel>
+                    <FormLabel className="text-gray-700">Price Per Hour</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" step="0.01" placeholder="0.00" {...field} />
+                      <Input type="number" min="0" step="0.01" placeholder="0.00" {...field} className="bg-white text-black border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -251,13 +253,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel className="text-gray-700">Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Describe your stadium, its features, and what makes it special" 
-                      className="min-h-[100px]" 
-                      {...field} 
-                    />
+                    <Textarea placeholder="Describe your stadium" {...field} className="bg-white text-black border-gray-300" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -270,9 +268,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel className="text-gray-700">Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="Street address" {...field} />
+                      <Input placeholder="Stadium address" {...field} className="bg-white text-black border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -284,9 +282,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City</FormLabel>
+                    <FormLabel className="text-gray-700">City</FormLabel>
                     <FormControl>
-                      <Input placeholder="City" {...field} />
+                      <Input placeholder="City" {...field} className="bg-white text-black border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -298,9 +296,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="state"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>State/Province</FormLabel>
+                    <FormLabel className="text-gray-700">State/Province</FormLabel>
                     <FormControl>
-                      <Input placeholder="State or province (optional)" {...field} />
+                      <Input placeholder="State/Province (optional)" {...field} className="bg-white text-black border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -312,9 +310,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="postalCode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Postal Code</FormLabel>
+                    <FormLabel className="text-gray-700">Postal Code</FormLabel>
                     <FormControl>
-                      <Input placeholder="Postal code" {...field} />
+                      <Input placeholder="Postal Code" {...field} className="bg-white text-black border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -326,9 +324,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="country"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Country</FormLabel>
+                    <FormLabel className="text-gray-700">Country</FormLabel>
                     <FormControl>
-                      <Input placeholder="Country" {...field} />
+                      <Input placeholder="Country" {...field} className="bg-white text-black border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -340,9 +338,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="capacity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Capacity</FormLabel>
+                    <FormLabel className="text-gray-700">Capacity</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" placeholder="Number of people" {...field} />
+                      <Input type="number" min="0" placeholder="Stadium capacity (optional)" {...field} className="bg-white text-black border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -356,13 +354,13 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="sportTypes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sport Types</FormLabel>
+                    <FormLabel className="text-gray-700">Sport Types</FormLabel>
                     <FormControl>
                       <MultiSelect
-                        placeholder="Select sports"
                         options={sportTypes}
                         selected={field.value || []}
                         onChange={field.onChange}
+                        placeholder="Select applicable sport types"
                       />
                     </FormControl>
                     <FormMessage />
@@ -375,13 +373,13 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="facilities"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Facilities</FormLabel>
+                    <FormLabel className="text-gray-700">Facilities</FormLabel>
                     <FormControl>
                       <MultiSelect
-                        placeholder="Select facilities"
                         options={facilityOptions}
                         selected={field.value || []}
                         onChange={field.onChange}
+                        placeholder="Select available facilities"
                       />
                     </FormControl>
                     <FormMessage />
@@ -395,13 +393,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
               name="rules"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Rules & Regulations</FormLabel>
+                  <FormLabel className="text-gray-700">Rules</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Any specific rules or information users should know" 
-                      className="min-h-[80px]" 
-                      {...field} 
-                    />
+                    <Textarea placeholder="Enter stadium rules (optional)" {...field} className="bg-white text-black border-gray-300" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -414,9 +408,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="contactPhone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contact Phone</FormLabel>
+                    <FormLabel className="text-gray-700">Contact Phone</FormLabel>
                     <FormControl>
-                      <Input placeholder="Phone number (optional)" {...field} />
+                      <Input placeholder="Contact phone (optional)" {...field} className="bg-white text-black border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -428,9 +422,9 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
                 name="contactEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contact Email</FormLabel>
+                    <FormLabel className="text-gray-700">Contact Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Email address (optional)" {...field} />
+                      <Input type="email" placeholder="Contact email (optional)" {...field} className="bg-white text-black border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -438,59 +432,51 @@ export default function EditStadiumForm({ stadium }: EditStadiumFormProps) {
               />
             </div>
 
-            <div>
-              <FormLabel>Images</FormLabel>
-              <div className="space-y-4">
-                <div className="flex">
-                  <Input
-                    placeholder="Enter image URL"
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    className="flex-1 mr-2"
-                  />
-                  <Button type="button" onClick={addImageUrl}>
-                    Add
-                  </Button>
-                </div>
-                
-                {imageUrls.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                    {imageUrls.map((url, index) => (
-                      <div key={index} className="relative group">
-                        <img 
-                          src={url} 
-                          alt={`Stadium image ${index + 1}`} 
-                          className="h-32 w-full object-cover rounded-md" 
-                        />
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="destructive"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
-                          onClick={() => removeImageUrl(url)}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            <div className="space-y-2">
+              <Label htmlFor="new-image-url" className="text-gray-700">Add Image URL</Label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  id="new-image-url"
+                  value={newImageUrl}
+                  onChange={(e) => setNewImageUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="bg-white text-black border-gray-300"
+                />
+                <Button type="button" onClick={addImageUrl} className="bg-gray-700 text-white hover:bg-gray-600">
+                  Add
+                </Button>
               </div>
             </div>
-
-            <div className="flex justify-end space-x-2">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => router.back()}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
-              </Button>
+            <div className="grid grid-cols-3 gap-4">
+              {imageUrls.map((url) => (
+                <div key={url} className="relative group">
+                  <img src={url} alt="Stadium" className="w-full h-32 object-cover rounded-md" />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                    onClick={() => removeImageUrl(url)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {imageUrls.length === 0 && <p className="text-gray-500 col-span-3">No images added yet.</p>}
             </div>
+
+            <CardFooter className="flex justify-end pt-6">
+              <Button type="submit" disabled={isSubmitting} className="bg-blue-600 text-white hover:bg-blue-700">
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </CardFooter>
           </form>
         </Form>
       </CardContent>
