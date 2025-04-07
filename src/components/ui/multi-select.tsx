@@ -47,6 +47,15 @@ function MultiSelect({
     onChange(selected.filter((i) => i !== item));
   };
 
+  const handleSelect = (value: string) => {
+    const isSelected = selected.includes(value);
+    if (isSelected) {
+      handleUnselect(value);
+    } else {
+      onChange([...selected, value]);
+    }
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -66,7 +75,10 @@ function MultiSelect({
                     variant="secondary"
                     key={item}
                     className="mr-1 mb-1 bg-blue-600 text-white hover:bg-blue-500"
-                    onClick={() => handleUnselect(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUnselect(item);
+                    }}
                   >
                     {option?.label || item}
                     <X className="ml-1 h-4 w-4 cursor-pointer" />
@@ -80,7 +92,7 @@ function MultiSelect({
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 bg-gray-800 border-gray-600">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-gray-800 border-gray-600">
         <Command className="bg-gray-800 text-white">
           <CommandInput placeholder="Search ..." className="placeholder:text-gray-400 text-white border-gray-600 focus:border-blue-500" />
           <CommandList>
@@ -91,15 +103,8 @@ function MultiSelect({
                 return (
                   <CommandItem
                     key={option.value}
-                    onSelect={() => {
-                      if (isSelected) {
-                        handleUnselect(option.value);
-                      } else {
-                        onChange([...selected, option.value]);
-                      }
-                      setOpen(true);
-                    }}
-                    className="text-white hover:!bg-gray-700 aria-selected:!bg-blue-700"
+                    onSelect={() => handleSelect(option.value)}
+                    className="text-white hover:!bg-gray-700 aria-selected:!bg-blue-700 cursor-pointer"
                   >
                     <Check
                       className={cn(

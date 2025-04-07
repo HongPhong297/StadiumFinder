@@ -25,18 +25,18 @@ export function CancelBookingCard({ booking, canCancel, cancelAction }: CancelBo
   };
 
   return (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
-        <CardTitle>Cancel Booking</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-gray-900">Cancel Booking</CardTitle>
+        <CardDescription className="text-gray-600">
           You are about to cancel your booking for {booking.stadium.name}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-gray-800 mb-4">
+        <p className="text-gray-700 mb-4">
           Are you sure you want to cancel this booking? This action cannot be undone.
         </p>
-        <div className="bg-amber-50 border border-amber-200 rounded p-3 text-amber-800 text-sm">
+        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-yellow-900 text-sm">
           Note: Cancellation policies may apply. Check the stadium's rules for details.
         </div>
 
@@ -48,11 +48,16 @@ export function CancelBookingCard({ booking, canCancel, cancelAction }: CancelBo
         )}
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={handleGoBack}> {/* Use client-side handler */}
+        <Button variant="outline" onClick={handleGoBack} className="text-gray-700 border-gray-300 hover:bg-gray-100">
           Go Back
         </Button>
-        <form action={cancelAction}> {/* Pass server action to form */}
-          <Button variant="destructive" type="submit" disabled={!canCancel}>
+        <form action={cancelAction}>
+          <Button 
+            variant="destructive" 
+            type="submit" 
+            disabled={!canCancel}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
             Confirm Cancellation
           </Button>
         </form>

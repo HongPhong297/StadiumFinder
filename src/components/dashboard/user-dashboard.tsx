@@ -5,6 +5,7 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface Booking {
   id: string;
@@ -39,6 +40,32 @@ const getStatusColor = (status: string) => {
 
 export function UserDashboard({ user, bookings }: UserDashboardProps) {
   const [activeTab, setActiveTab] = useState<"bookings" | "favorites" | "profile">("bookings");
+  const [isLoading, setIsLoading] = useState(false);
+  const [name, setName] = useState(user.name || "");
+
+  const handleSaveProfile = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update profile");
+      }
+
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -168,16 +195,17 @@ export function UserDashboard({ user, bookings }: UserDashboardProps) {
 
             {activeTab === "profile" && (
               <div>
-                <h2 className="text-xl font-semibold text-black mb-6">
+                <h2 className="text-xl font-semibold text-white mb-6">
                   Profile Settings
                 </h2>
-                <div className="bg-white shadow rounded-lg">
+                <p className="text-white mb-6">Manage your personal information</p>
+                <div className="bg-gray-800 shadow rounded-lg border border-gray-700">
                   <div className="px-4 py-5 sm:p-6">
                     <div className="grid grid-cols-1 gap-6">
                       <div className="col-span-1">
                         <label
                           htmlFor="name"
-                          className="block text-sm font-medium text-black"
+                          className="block text-sm font-medium text-white"
                         >
                           Name
                         </label>
@@ -185,15 +213,16 @@ export function UserDashboard({ user, bookings }: UserDashboardProps) {
                           type="text"
                           name="name"
                           id="name"
-                          defaultValue={user.name || ""}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-white placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                           placeholder="Your name"
                         />
                       </div>
                       <div className="col-span-1">
                         <label
                           htmlFor="email"
-                          className="block text-sm font-medium text-black"
+                          className="block text-sm font-medium text-white"
                         >
                           Email
                         </label>
@@ -203,15 +232,18 @@ export function UserDashboard({ user, bookings }: UserDashboardProps) {
                           id="email"
                           defaultValue={user.email}
                           disabled
-                          className="mt-1 block w-full border border-gray-300 bg-gray-50 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                          className="mt-1 block w-full border border-gray-700 rounded-md shadow-sm py-2 px-3 bg-gray-600 text-gray-300 cursor-not-allowed focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         />
+                        <p className="mt-1 text-sm text-gray-400">Your email address cannot be changed</p>
                       </div>
                       <div className="col-span-1">
                         <button
                           type="button"
-                          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          onClick={handleSaveProfile}
+                          disabled={isLoading}
+                          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Save Changes
+                          {isLoading ? "Saving..." : "Save Changes"}
                         </button>
                       </div>
                     </div>

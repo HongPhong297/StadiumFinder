@@ -79,6 +79,9 @@ export default function StadiumOwnerDashboard({
   const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
   // --- State for status filter ---
   const [selectedStatus, setSelectedStatus] = useState<StatusFilter>('ALL');
+  const [isLoading, setIsLoading] = useState(false);
+  const [name, setName] = useState(user.name || "");
+  const [contactPhone, setContactPhone] = useState(user.contactPhone || "");
 
   // Function to get appropriate status badge color
   const getStatusColor = (status: string) => {
@@ -141,6 +144,34 @@ export default function StadiumOwnerDashboard({
     }
     return bookings.filter(booking => booking.status === selectedStatus);
   }, [bookings, selectedStatus]);
+
+  const handleSaveProfile = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          name,
+          contactPhone,
+          role: "STADIUM_OWNER"
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update profile");
+      }
+
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -464,9 +495,10 @@ export default function StadiumOwnerDashboard({
 
             {activeTab === "profile" && (
               <div className="bg-gray-800 p-6 rounded-lg shadow">
-                <h2 className="text-xl font-semibold text-white mb-6">
+                <h2 className="text-xl font-semibold text-white mb-2">
                   Profile Settings
                 </h2>
+                <p className="text-white mb-6">Manage your personal information</p>
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                     <div className="sm:col-span-6">
@@ -480,7 +512,8 @@ export default function StadiumOwnerDashboard({
                         type="text"
                         name="name"
                         id="name"
-                        defaultValue={user.name || ""}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                         className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm p-2 bg-gray-700 text-white placeholder:text-gray-400 focus:ring-blue-600 focus:border-blue-600 ring-offset-gray-800"
                         placeholder="Your business name"
                       />
@@ -499,7 +532,7 @@ export default function StadiumOwnerDashboard({
                         id="email"
                         defaultValue={user.email || ""}
                         disabled
-                        className="mt-1 block w-full border border-gray-700 rounded-md shadow-sm p-2 bg-gray-600 text-gray-400 cursor-not-allowed"
+                        className="mt-1 block w-full border border-gray-700 rounded-md shadow-sm p-2 bg-gray-600 text-gray-300 cursor-not-allowed"
                       />
                       <p className="mt-1 text-sm text-gray-400">Your email address cannot be changed.</p>
                     </div>
@@ -515,19 +548,21 @@ export default function StadiumOwnerDashboard({
                         type="text"
                         name="contactPhone"
                         id="contactPhone"
-                        defaultValue={user.contactPhone || ""}
+                        value={contactPhone}
+                        onChange={(e) => setContactPhone(e.target.value)}
                         className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm p-2 bg-gray-700 text-white placeholder:text-gray-400 focus:ring-blue-600 focus:border-blue-600 ring-offset-gray-800"
                         placeholder="Your contact phone number"
                       />
                     </div>
-                  </div>
-                  <div className="pt-5">
-                    <div className="flex justify-end">
+
+                    <div className="sm:col-span-6">
                       <button
                         type="button"
-                        className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ring-offset-gray-800"
+                        onClick={handleSaveProfile}
+                        disabled={isLoading}
+                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Save Changes
+                        {isLoading ? "Saving..." : "Save Changes"}
                       </button>
                     </div>
                   </div>

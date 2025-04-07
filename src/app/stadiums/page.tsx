@@ -1,6 +1,7 @@
 import StadiumList from "@/components/stadiums/stadium-list";
 import StadiumFilters from "@/components/stadiums/stadium-filters";
 import SearchBox from "@/components/stadiums/search-box";
+import StadiumSort from "@/components/stadiums/stadium-sort";
 import prisma from "@/lib/prisma";
 import { Suspense } from "react";
 
@@ -11,6 +12,8 @@ interface SearchParams {
   priceMax?: string;
   date?: string;
   page?: string;
+  sort?: string;
+  q?: string;
 }
 
 // Make sure this is a Server Component to handle the searchParams
@@ -30,7 +33,9 @@ export default async function StadiumsPage({
     city = '', 
     sport = '', 
     priceMin = '', 
-    priceMax = '' 
+    priceMax = '',
+    sort = 'newest',
+    q = ''
   } = searchParamsObj;
   
   const pageNumber = Number(page) || 1;
@@ -39,6 +44,14 @@ export default async function StadiumsPage({
 
   // Build filter conditions
   const where: any = {};
+
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { city: { contains: q, mode: "insensitive" } },
+      { sportTypes: { has: q } },
+    ];
+  }
 
   if (city) {
     where.city = {
@@ -65,6 +78,24 @@ export default async function StadiumsPage({
     }
   }
 
+  // Build orderBy based on sort parameter
+  let orderBy: any = { createdAt: "desc" }; // default sort
+  switch (sort) {
+    case "price-asc":
+      orderBy = { pricePerHour: "asc" };
+      break;
+    case "price-desc":
+      orderBy = { pricePerHour: "desc" };
+      break;
+    case "rating":
+      orderBy = { reviews: { _count: "desc" } };
+      break;
+    case "newest":
+    default:
+      orderBy = { createdAt: "desc" };
+      break;
+  }
+
   const stadiumsData = await prisma.stadium.findMany({
     where,
     include: {
@@ -84,9 +115,7 @@ export default async function StadiumsPage({
     },
     skip,
     take: pageSize,
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy,
   });
 
   // Convert non-serializable Decimal objects to plain numbers
@@ -135,7 +164,7 @@ export default async function StadiumsPage({
           </h1>
           <div className="mt-6">
             <Suspense fallback={<div className="h-12 bg-gray-200 rounded-lg animate-pulse" />}>
-              <SearchBox initialCity={city} />
+              <SearchBox initialQuery={q} />
             </Suspense>
           </div>
         </div>
@@ -159,17 +188,9 @@ export default async function StadiumsPage({
                 <h2 className="text-lg font-medium text-black">
                   {totalStadiums} {totalStadiums === 1 ? 'Stadium' : 'Stadiums'} found
                 </h2>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-black">Sort by:</span>
-                  <select 
-                    className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md text-black"
-                  >
-                    <option className="text-black">Newest</option>
-                    <option className="text-black">Price: Low to High</option>
-                    <option className="text-black">Price: High to Low</option>
-                    <option className="text-black">Rating</option>
-                  </select>
-                </div>
+                <Suspense fallback={<div className="h-10 w-48 bg-gray-200 rounded animate-pulse" />}>
+                  <StadiumSort currentSort={sort} />
+                </Suspense>
               </div>
             </div>
             

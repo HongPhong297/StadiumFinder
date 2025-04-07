@@ -1,26 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface SearchBoxProps {
-  initialCity?: string;
+  initialQuery?: string;
 }
 
-export default function SearchBox({ initialCity = "" }: SearchBoxProps) {
-  const [searchTerm, setSearchTerm] = useState(initialCity);
+export default function SearchBox({ initialQuery = "" }: SearchBoxProps) {
+  const [searchTerm, setSearchTerm] = useState(initialQuery);
   const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const params = new URLSearchParams(window.location.search);
+
     if (searchTerm.trim()) {
-      const params = new URLSearchParams();
-      params.set("city", searchTerm.trim());
-      router.push(`/stadiums?${params.toString()}`);
+      params.set("q", searchTerm.trim());
     } else {
-      router.push("/stadiums");
+      params.delete("q");
     }
+    params.set("page", "1");
+    router.push(`/stadiums?${params.toString()}`);
   };
 
   return (
@@ -54,9 +56,9 @@ export default function SearchBox({ initialCity = "" }: SearchBoxProps) {
         </div>
         <button
           type="submit"
-          className="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
         >
-          <span>Search</span>
+          Search
         </button>
       </div>
     </form>

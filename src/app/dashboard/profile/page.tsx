@@ -27,7 +27,7 @@ export default async function ProfilePage() {
             <div className="space-y-6">
               <div className="flex flex-col md:flex-row md:items-center">
                 <div className="md:w-1/3">
-                  <label className="text-sm font-medium text-gray-300">Profile Picture</label>
+                  <label className="text-sm font-medium text-white">Profile Picture</label>
                 </div>
                 <div className="md:w-2/3 mt-2 md:mt-0">
                   <div className="flex items-center">
@@ -46,7 +46,7 @@ export default async function ProfilePage() {
                     )}
                     <button
                       type="button"
-                      className="ml-5 bg-gray-700 py-2 px-3 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ring-offset-gray-800"
+                      className="ml-5 bg-gray-700 py-2 px-3 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ring-offset-gray-800"
                     >
                       Change
                     </button>
@@ -56,13 +56,13 @@ export default async function ProfilePage() {
 
               <div className="flex flex-col md:flex-row md:items-center">
                 <div className="md:w-1/3">
-                  <label className="text-sm font-medium text-gray-300">Full Name</label>
+                  <label className="text-sm font-medium text-white">Full Name</label>
                 </div>
                 <div className="md:w-2/3 mt-2 md:mt-0">
                   <input
                     type="text"
                     defaultValue={session.user.name || ""}
-                    className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm p-2 bg-gray-700 text-white placeholder:text-gray-400"
+                    className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm p-2 bg-gray-700 text-white placeholder:text-gray-400 focus:ring-blue-600 focus:border-blue-600 ring-offset-gray-800"
                     placeholder="Your name"
                   />
                 </div>
@@ -70,13 +70,13 @@ export default async function ProfilePage() {
 
               <div className="flex flex-col md:flex-row md:items-center">
                 <div className="md:w-1/3">
-                  <label className="text-sm font-medium text-gray-300">Email Address</label>
+                  <label className="text-sm font-medium text-white">Email Address</label>
                 </div>
                 <div className="md:w-2/3 mt-2 md:mt-0">
                   <input
                     type="email"
                     defaultValue={session.user.email || ""}
-                    className="mt-1 block w-full border border-gray-700 rounded-md shadow-sm p-2 bg-gray-600 text-gray-400 cursor-not-allowed"
+                    className="mt-1 block w-full border border-gray-700 rounded-md shadow-sm p-2 bg-gray-600 text-gray-300 cursor-not-allowed"
                     readOnly
                   />
                   <p className="mt-1 text-sm text-gray-400">Your email address cannot be changed</p>

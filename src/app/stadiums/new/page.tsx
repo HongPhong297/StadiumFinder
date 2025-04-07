@@ -170,7 +170,7 @@ export default function NewStadiumPage() {
       setIsSubmitting(false);
     }
   }
-
+  
   return (
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6 text-white">List a New Stadium</h1>
@@ -424,16 +424,24 @@ export default function NewStadiumPage() {
 
               <div>
                 <FormLabel className="text-white">Stadium Images</FormLabel>
-                <div className="flex items-center gap-2 mb-2">
-                  <Input
-                    placeholder="Enter image URL"
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    className="text-white bg-gray-700 border-gray-600"
-                  />
-                  <Button type="button" onClick={addImageUrl} variant="secondary" className="shrink-0">
-                    Add Image
-                  </Button>
+                <div className="space-y-2">
+                  <FormLabel className="text-white">Add Image URL</FormLabel>
+                  <div className="flex items-center space-x-2">
+                    <Input 
+                      id="new-image-url"
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      className="bg-gray-700 text-white border-gray-600"
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={addImageUrl} 
+                      className="bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      Add Image
+                    </Button>
+                  </div>
                 </div>
 
                 {imageUrls.length > 0 ? (
@@ -451,14 +459,14 @@ export default function NewStadiumPage() {
                             (e.target as HTMLImageElement).src = "https://via.placeholder.com/300x150?text=Invalid+Image+URL";
                           }}
                         />
-                        <button
+        <button 
                           type="button"
                           className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => removeImageUrl(url)}
-                        >
+        >
                           &times;
-                        </button>
-                      </div>
+        </button>
+      </div>
                     ))}
                   </div>
                 ) : (
